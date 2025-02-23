@@ -26,9 +26,8 @@ const ManageRecipes = () => {
     page,
     limit, // Make dynamic based on pagination
   };
-  const [deleteRecipe, isDeleting] = useDeleteRecipeMutation();
+  const [deleteRecipe, { isLoading: isDeleting }] = useDeleteRecipeMutation();
   const { data, isLoading, isFetching } = useRecipesQuery(params);
-  console.log(data);
   const newData =
     data &&
     data.recipes &&
@@ -68,7 +67,7 @@ const ManageRecipes = () => {
   };
   return (
     <div>
-      {(isLoading || isFetching) && <Loader />}
+      {(isLoading || isFetching || isDeleting) && <Loader />}
       <Typography variant="h2" gutterbottom>
         Manage Recipes
       </Typography>

@@ -14,7 +14,7 @@ export const recipeApi = createApi({
     //   providesTags: ["Recipes"],
     // }),
     recipes: builder.query<{
-      categories: Recipe[],
+      recipes: Recipe[],
       pagination: { totalItems: number; totalPages: number; currentPage: number; limit: number }
     }, { page?: number; limit?: number; search?: string; sort?: string; order?: string; filters?: Record<string, string> }>({
       query: ({ page = 1, limit = 10, search, sort = "createdAt", order = "desc", filters }) => {
