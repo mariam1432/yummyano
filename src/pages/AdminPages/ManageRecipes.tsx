@@ -8,31 +8,58 @@ import {
 import { Loader } from "../../components";
 import { useNavigate } from "react-router";
 import { getFromLocalStorage } from "../../commonUtils";
+import { useSearchParams } from "react-router-dom";
 
 const ManageRecipes = () => {
   const navigate = useNavigate();
   const user = getFromLocalStorage("user");
-  const [deleteRecipe,isDeleting] = useDeleteRecipeMutation();
-  const { data = [], isLoading, isFetching } = useRecipesQuery();
-  const newData = data.map((recipe) => ({
-    ...recipe,
-    authorName: recipe?.author?.name || "Unknown",
-    createdAt: new Date(recipe.createdAt).toLocaleDateString("en-US", {
-      year: "2-digit",
-      month: "2-digit",
-      day: "2-digit",
-    }),
-  }));
-  const handleAction = (type, data) => {
-    console.log(type, data);
+
+  const [searchParams, setSearchParams] = useSearchParams();
+  const searchTerm = searchParams.get("search") || "";
+  const limit = searchParams.get("limit") || 10;
+  const page = searchParams.get("page") || 1;
+
+  let params = {
+    search: searchTerm,
+    sort: "title",
+    order: "asc",
+    page,
+    limit, // Make dynamic based on pagination
+  };
+  const [deleteRecipe, isDeleting] = useDeleteRecipeMutation();
+  const { data, isLoading, isFetching } = useRecipesQuery(params);
+  console.log(data);
+  const newData =
+    data &&
+    data.recipes &&
+    data.recipes.map((recipe) => ({
+      ...recipe,
+      authorName: recipe?.author?.name || "Unknown",
+      createdAt: new Date(recipe.createdAt).toLocaleDateString("en-US", {
+        year: "2-digit",
+        month: "2-digit",
+        day: "2-digit",
+      }),
+    }));
+  const handleAction = (type, actionData) => {
     switch (type) {
       case "edit":
-        navigate(`/admin/edit-recipe/${data._id}`);
+        navigate(`/admin/edit-recipe/${actionData._id}`);
         break;
       case "delete":
         deleteRecipe({
-          id: data._id,
+          id: actionData._id,
           body: { currentUserId: user.currentUserId, isAdmin: user.isAdmin },
+        });
+        break;
+      case "search":
+        setSearchParams(actionData.trim() ? { search: actionData } : {});
+        break;
+      case "paginate":
+        setSearchParams({
+          search: searchTerm,
+          page: actionData.page,
+          limit: actionData.limit,
         });
         break;
       default:
@@ -49,6 +76,14 @@ const ManageRecipes = () => {
         columns={recipeColumns}
         data={newData}
         handleAction={handleAction}
+        pagination={
+          (data && data.pagination && data?.pagination) || {
+            totalItems: 0,
+            totalPages: 1,
+            currentPage: 1,
+            limit: 10,
+          }
+        }
       />
     </div>
   );
