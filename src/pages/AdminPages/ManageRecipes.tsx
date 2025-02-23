@@ -27,19 +27,23 @@ const ManageRecipes = () => {
     limit, // Make dynamic based on pagination
   };
   const [deleteRecipe, { isLoading: isDeleting }] = useDeleteRecipeMutation();
-  const { data, isLoading, isFetching } = useRecipesQuery(params);
+  const {
+    data = { recipes: [], pagination: {} },
+    isLoading,
+    isFetching,
+  } = useRecipesQuery(params);
   const newData =
-    data &&
-    data.recipes &&
-    data.recipes.map((recipe) => ({
-      ...recipe,
-      authorName: recipe?.author?.name || "Unknown",
-      createdAt: new Date(recipe.createdAt).toLocaleDateString("en-US", {
-        year: "2-digit",
-        month: "2-digit",
-        day: "2-digit",
-      }),
-    }));
+    data && data.recipes
+      ? data.recipes.map((recipe) => ({
+          ...recipe,
+          authorName: recipe?.author?.name || "Unknown",
+          createdAt: new Date(recipe.createdAt).toLocaleDateString("en-US", {
+            year: "2-digit",
+            month: "2-digit",
+            day: "2-digit",
+          }),
+        }))
+      : [];
   const handleAction = (type, actionData) => {
     switch (type) {
       case "edit":
