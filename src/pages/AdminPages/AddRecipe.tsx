@@ -6,7 +6,7 @@ import {
   Textfield,
   Typography,
   ImageUploader,
-  AsyncSelect,
+  AsyncSelectWithLoadMore,
 } from "../../components";
 import { useFormik } from "formik";
 import * as Yup from "yup";
@@ -16,9 +16,8 @@ import {
   useCreateRecipeMutation,
   useEditRecipeMutation,
   useLazyRecipeQuery,
-  
 } from "../../services/recipesApi";
-import { useLazyCategoryQuery } from "../../services/categoriesApi";
+import { useLazyCategoriesQuery } from "../../services/categoriesApi";
 import { useParams } from "react-router-dom";
 
 const Wrapper = styled.div`
@@ -96,7 +95,40 @@ const Wrapper = styled.div`
 
 const AddRecipe = () => {
   const { id } = useParams();
+
   const [fetchRecipe, response, isLoading] = useLazyRecipeQuery();
+  const [selectedCategories, setSelectedCategories] = useState([]);
+
+  const [fetchCategories, { data }] = useLazyCategoriesQuery();
+  const loadCategories = async (search, prevOptions, { page = 1 }) => {
+    try {
+      const result = await fetchCategories({
+        page,
+        search,
+        limit: 10,
+      }).unwrap();
+
+      return {
+        options: result.categories.map((c) => ({
+          label: c.title,
+          value: c._id,
+        })),
+        hasMore: result.pagination.currentPage < result.pagination.totalPages,
+        additional: {
+          page: page + 1,
+        },
+      };
+    } catch (error) {
+      console.error("Failed to load categories:", error);
+      return {
+        options: [],
+        hasMore: false,
+        additional: {
+          page: page + 1,
+        },
+      };
+    }
+  };
 
   const [createRecipe] = useCreateRecipeMutation();
   const [editRecipe] = useEditRecipeMutation();
@@ -108,6 +140,10 @@ const AddRecipe = () => {
     quantity: "",
     step: "",
   });
+
+  // useEffect(() => {
+  //   loadMoreCategories();
+  // }, []);
 
   useEffect(() => {
     if (id) fetchRecipe(id);
@@ -153,7 +189,7 @@ const AddRecipe = () => {
     imgUrl: "",
     title: "",
     difficultyLevel: "",
-    category: "",
+    categories: [],
     servingPortions: "",
     prepTime: "",
     description: "",
@@ -174,7 +210,7 @@ const AddRecipe = () => {
     title: Yup.string().required("Title is required"),
     description: Yup.string().required("Description is required"),
     difficultyLevel: Yup.string().required("Difficulty Level is required"),
-    category: Yup.string().required("Category is required"),
+    categories: Yup.array().min(1, "at least 1").required("required"),
 
     servingPortions: Yup.number()
       .positive("Must be more than 0")
@@ -229,6 +265,7 @@ const AddRecipe = () => {
     delete values.tempIngredient;
     let imageUrl = values?.imgUrl || "";
 
+    // add back
     if (updateImg) {
       const data = new FormData();
       data.append("file", imgURL);
@@ -251,9 +288,19 @@ const AddRecipe = () => {
     id
       ? editRecipe({
           id,
-          body: { ...values, imgUrl: imageUrl, updatedBy: user._id },
+          body: {
+            ...values,
+            imgUrl: imageUrl,
+            updatedBy: user._id,
+            categories: values.categories.map((c) => c.value),
+          },
         })
-      : createRecipe({ ...values, imgUrl: imageUrl, authorId: user._id });
+      : createRecipe({
+          ...values,
+          categories: values.categories.map((c) => c.value),
+          imgUrl: imageUrl,
+          authorId: user._id,
+        });
 
     resetForm();
     setSubmitting(false);
@@ -265,6 +312,17 @@ const AddRecipe = () => {
     enableReinitialize: true,
     onSubmit: handleSubmit,
   });
+  useEffect(() => {
+    if (id && response?.currentData?.categories?.length > 0) {
+      const categories = response.currentData.categories;
+      const formatted = categories.map((category) => ({
+        label: category.title,
+        value: category._id,
+      }));
+      setSelectedCategories(formatted);
+    }
+  }, [id, response]);
+  console.log(selectedCategories, "ress");
 
   const ingredientCrud = (type, data) => {
     switch (type) {
@@ -417,7 +475,7 @@ const AddRecipe = () => {
             formik?.touched?.difficultyLevel && formik.errors.difficultyLevel
           }
         />
-        <Textfield
+        {/* <Textfield
           label="Category"
           placeholder={"Enter Category"}
           name="category"
@@ -425,8 +483,19 @@ const AddRecipe = () => {
           onBlur={formik.handleBlur}
           onChange={formik.handleChange}
           errorMessage={formik?.touched?.category && formik.errors.category}
+        /> */}
+        <AsyncSelectWithLoadMore
+          selectedOptions={selectedCategories}
+          onChange={(selectedOptions) => {
+            console.log(selectedOptions);
+            setSelectedCategories(selectedOptions);
+
+            formik.setFieldValue("categories", selectedOptions);
+          }}
+          loadOptions={loadCategories}
+          placeholder="Select categories..."
         />
-        <AsyncSelect list={[]} />
+        {JSON.stringify(formik?.touched && formik.errors?.categories)}
         <Textfield
           label="Serving Portions"
           placeholder={"Enter Serving Portions"}
@@ -529,7 +598,7 @@ const AddRecipe = () => {
           <></>
         )}
         <Typography color="red" variant="smbody">
-          {formik.errors.ingredients}
+          {formik.errors?.ingredients}
         </Typography>{" "}
         <div id="ingredient-container">
           <div id="ingredient-header">
