@@ -593,6 +593,8 @@ const AddRecipe = () => {
             columns={ingredientColumns}
             data={formik.values.ingredients}
             handleAction={ingredientCrud}
+            isSearchable={false}
+            isPaginated={false}
           />
         ) : (
           <></>
@@ -641,6 +643,8 @@ const AddRecipe = () => {
             data={formik.values.directions.map((d, i) => {
               return { ...d, sno: i + 1 };
             })}
+            isSearchable={false}
+            isPaginated={false}
           />
         ) : (
           <></>

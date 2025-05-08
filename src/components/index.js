@@ -11,4 +11,4 @@ export { default as Sidebar } from "./DashboardSidebar";
 export { default as Tag } from "./Tag";
 export { default as ImageUploader } from "./ImageUploader";
 export { default as Loader } from "./Loader";
-export { default as AsyncSelect } from "./AsyncSelect";
+export { default as AsyncSelectWithLoadMore } from "./TagSelect";

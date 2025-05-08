@@ -52,9 +52,16 @@ const PaginationControls = styled.div`
   margin-top: 10px;
 `;
 
-const Table = ({ columns, data, handleAction, pagination }) => {
-    const [searchParams] = useSearchParams();
-  
+const Table = ({
+  columns,
+  data,
+  handleAction,
+  pagination,
+  isSearchable = true,
+  isPaginated = true,
+}) => {
+  const [searchParams] = useSearchParams();
+
   const searchTerm = searchParams.get("search") || "";
   const { currentPage = 1, totalPages = 1, limit = 10 } = pagination || {}; // Ensure pagination exists
   const [localSearch, setLocalSearch] = useState(searchTerm);
@@ -76,19 +83,27 @@ const Table = ({ columns, data, handleAction, pagination }) => {
 
   return (
     <>
-      <SearchField>
-        <Textfield
-          placeholder={"Search"}
-          type={"text"}
-          value={localSearch}
-          onChange={(e) => setLocalSearch(e.target.value)}
-          handleKeyDown={handleKeyDown}
-        />
-        <Button onClick={() => handleAction("search", localSearch)}>
-          Search
-        </Button>
-      </SearchField>
-      <br />
+      {isSearchable ? (
+        <>
+          {" "}
+          <SearchField>
+            <Textfield
+              placeholder={"Search"}
+              type={"text"}
+              value={localSearch}
+              onChange={(e) => setLocalSearch(e.target.value)}
+              handleKeyDown={handleKeyDown}
+            />
+            <Button onClick={() => handleAction("search", localSearch)}>
+              Search
+            </Button>
+          </SearchField>
+          <br />
+        </>
+      ) : (
+        <></>
+      )}
+
       <TableWrapper>
         <thead>
           <tr>
@@ -118,32 +133,36 @@ const Table = ({ columns, data, handleAction, pagination }) => {
       </TableWrapper>
 
       {/* Pagination */}
-      <PaginationControls>
-        <div>
-          <label>Rows per page: </label>
-          <select value={rowLimit} onChange={handleLimitChange}>
-            <option value={2}>2</option>
-            <option value={5}>5</option>
-            <option value={10}>10</option>
-            <option value={50}>50</option>
-          </select>
-        </div>
-        <Button
-          onClick={() => handlePagination(currentPage - 1)}
-          isDisabled={currentPage === 1}
-        >
-          Previous
-        </Button>
-        <span>
-          Page {currentPage} of {totalPages}
-        </span>
-        <Button
-          onClick={() => handlePagination(currentPage + 1)}
-          isDisabled={currentPage === totalPages}
-        >
-          Next
-        </Button>
-      </PaginationControls>
+      {isPaginated ? (
+        <PaginationControls>
+          <div>
+            <label>Rows per page: </label>
+            <select value={rowLimit} onChange={handleLimitChange}>
+              <option value={2}>2</option>
+              <option value={5}>5</option>
+              <option value={10}>10</option>
+              <option value={50}>50</option>
+            </select>
+          </div>
+          <Button
+            onClick={() => handlePagination(currentPage - 1)}
+            isDisabled={currentPage === 1}
+          >
+            Previous
+          </Button>
+          <span>
+            Page {currentPage} of {totalPages}
+          </span>
+          <Button
+            onClick={() => handlePagination(currentPage + 1)}
+            isDisabled={currentPage === totalPages}
+          >
+            Next
+          </Button>
+        </PaginationControls>
+      ) : (
+        <></>
+      )}
     </>
   );
 };
