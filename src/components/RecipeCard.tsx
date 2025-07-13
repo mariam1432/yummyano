@@ -4,66 +4,84 @@ import Typography from "./Typography";
 import { convertTimeString } from "../commonUtils";
 const StyledCard = styled.div`
   background: #f5cc94;
-  padding: 10px 0px;
-  //   height: 80vh;
+  padding: 20px;
+  min-height: 60vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+
   #head {
     width: 100%;
     display: flex;
     align-items: center;
-    justify-content: space-around;
+    justify-content: space-between;
     border-bottom: 2px solid #bf4040;
+    padding-bottom: 10px;
   }
-  #body {
-    // max-height:90%;
 
-    padding: 15px 20px;
+  #body {
     display: flex;
-    gap: 10px;
-    // align-items: center;
-    // justify-content: space-between;
-    #ingredients-container,
-    #directions {
-      //    max-height:90%;
-      overflow-y: auto; /* Add this to enable vertical scrolling */
-    }
+    gap: 20px;
+    flex: 1;
+    margin-top: 20px;
+
     #ingredients-sec {
-        width:30%;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+
       #ingredients-container {
         border: 2px solid #555;
-        padding: 5px 10px;
+        padding: 10px;
+        border-radius: 4px;
+        flex-grow: 1;
+        min-height: 100px;
+        background: #fff4e1;
       }
     }
+
     #directions-container {
-      width:70%;
+      flex: 2;
+      display: flex;
+      flex-direction: column;
+
       #directions {
-        margin-left: 10px;
-        padding: 2px 4px;
+        margin-top: 10px;
+        padding: 10px;
+        background: #fff4e1;
+        border-radius: 4px;
+        flex-grow: 1;
+        min-height: 100px;
         display: flex;
         flex-direction: column;
-        gap: 5px;
+        gap: 8px;
       }
     }
   }
+
   @media only screen and (max-width: 767px) {
-   
+    #head {
+      flex-direction: column;
+      text-align: center;
+    }
+
     #body {
       flex-direction: column;
-      #ingredients-sec {
-        width: 100%;
-   
-            #ingredients-container {
-                width:100%;
-              border: none;
-              padding: 0;
-            
-          }
-      }
+      gap: 10px;
+
+      #ingredients-sec,
       #directions-container {
-        width:100%;
+        width: 100%;
+      }
+
+      #ingredients-container,
+      #directions {
+        width: 100%;
+      }
     }
-  
- 
+  }
 `;
+
 function RecipeCard({ recipe }) {
   return (
     <StyledCard>

@@ -5,10 +5,13 @@ const StyledCard = styled.div`
   box-shadow: rgba(0, 0, 0, 0.24) 0px 3px 8px;
   box-sizing: border-box;
   cursor: pointer;
-  width: 100%;
+  max-width: 100%;
+  @media (min-width: 768px) {
+    max-width: ${(props) => (props.size === "sm" ? "250px" : "350px")};
+  }
   height: auto;
   max-height: 40vh;
-  // height: ${(props) => (props.size === "sm" ? "180px" : "250px")};
+  max-width: ${(props) => (props.size === "sm" ? "250px" : "350px")};
   background: #fdf5e6;
   text-align: center;
   padding: 10px;
@@ -29,8 +32,10 @@ const StyledCard = styled.div`
     img {
       border-radius: 10px;
 
-      height: 60%;
-      width: 100%;
+      height: ${(props) => (props.fixedImgSize ? "70px" : "60%")};
+      width: ${(props) => (props.fixedImgSize ? "100px" : "100%")};
+      min-height: 70px;
+      min-width: 100px;
       object-fit: cover;
     }
     .truncate {
@@ -50,13 +55,14 @@ const DashedCard = ({
   truncate,
   bodySize,
   onClick,
+  fixedImgSize,
 }) => {
   return (
-    <StyledCard size={size} onClick={onClick}>
+    <StyledCard size={size} onClick={onClick} fixedImgSize={fixedImgSize}>
       <div id="card-content">
         <img src={imgUrl} />
         <Typography
-          variant={bodySize === "lg" ? "h2" : "h3"}
+          variant={bodySize === "lg" ? "h3" : bodySize === "sm" ? "p" : "h4"}
           fontface="goth"
           gutterbottom={size !== "sm"}
         >

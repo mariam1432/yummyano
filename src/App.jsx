@@ -21,7 +21,7 @@ function App() {
       <ThemeProvider theme={theme}>
         <div id="root" className="app-container">
           <Navbar />
-          <div className="wrapper">
+          <main style={{ flex: 1 }}>
             <Routes>
               <Route path="/" element={<LandingPage />} />
               <Route path="/login" element={<Login />} />
@@ -39,7 +39,7 @@ function App() {
 
               <Route path="*" element={<Page404 />} />
             </Routes>
-          </div>
+          </main>
           <Footer />
         </div>
       </ThemeProvider>

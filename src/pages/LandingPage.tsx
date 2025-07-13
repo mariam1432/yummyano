@@ -1,9 +1,16 @@
 import React from "react";
-import { Textfield, Button, Typography, DashedCard } from "../components";
+import {
+  Textfield,
+  Button,
+  Typography,
+  DashedCard,
+  Loader,
+} from "../components";
 import hero from "../assets/heroImg.png";
 import { styled } from "styled-components";
 import { useNavigate } from "react-router-dom";
-
+import { useRecipesQuery } from "../services/recipesApi";
+import { useCategoriesQuery } from "../services/categoriesApi";
 const Container = styled.div`
 
   #hero {
@@ -74,10 +81,21 @@ const Container = styled.div`
   }
 `;
 function LandingPage() {
+  let params = {
+    sort: "title",
+    order: "asc",
+    limit: 20, // Make dynamic based on pagination
+  };
   const navigate = useNavigate();
-
+  const { data = { recipes: [], pagination: {} }, isLoading } =
+    useRecipesQuery(params);
+  const {
+    data: categoryData = { categories: [], pagination: {} },
+    isLoading: isCategoryLoading,
+  } = useCategoriesQuery(params);
   return (
     <Container className="padding-container">
+      {(isLoading || isCategoryLoading) && <Loader isDisabled />}
       <div id="hero">
         <img src={hero} />
         <div id="hero-content">
@@ -104,106 +122,67 @@ function LandingPage() {
       </Typography>
 
       <div id="featured">
-        {[...Array(10)].map(() => (
-          <DashedCard
-            onClick={() => navigate("/recipe")}
-            bodySize="sm"
-            imgUrl={
-              "https://images.unsplash.com/photo-1563729784474-d77dbb933a9e?q=80&w=1374&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
-            }
-            title="Raspberry Cupcakes"
-            body={`A perfectly soft, classic vanilla cake recipe made entirely from scratch. It's so simple to make and tastes much better than a box mix!`}
-          />
-        ))}
+        {data && data.recipes && data.recipes.length > 0 ? (
+          data.recipes.map((recipe) => (
+            <DashedCard
+              size="sm"
+              onClick={() => navigate(`/recipe/${recipe._id}`)}
+              bodySize="sm"
+              imgUrl={recipe.imgUrl}
+              title={recipe.title}
+              body={recipe.description}
+            />
+          ))
+        ) : (
+          <></>
+        )}
       </div>
       <Typography variant="h3" fontface="goth" underline gutterbottom>
-        Categories{" "}
+        Categories
       </Typography>
 
       <div id="categories">
-        {[...Array(10)].map(() => (
-          <div style={{ maxWidth: "170px" }}>
-            <DashedCard
-              onClick={() => navigate("/recipe")}
-              bodySize="sm"
-              size={"sm"}
-              imgUrl={
-                "https://images.unsplash.com/photo-1563729784474-d77dbb933a9e?q=80&w=1374&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
-              }
-              title="Rice"
-              body={`50 recipes`}
-            />
-          </div>
-        ))}
+        {categoryData && categoryData?.categories ? (
+          categoryData.categories.map((category) => (
+            <div style={{ maxWidth: "170px" }}>
+              <DashedCard
+                onClick={() => navigate("/recipe")}
+                bodySize="sm"
+                size={"sm"}
+                fixedImgSize={true}
+                imgUrl={category.imgUrl}
+                title={category.title}
+                body={
+                  category?.recipeCount && category.recipeCount > 0
+                    ? `${category.recipeCount} recipes`
+                    : "No recipes yet"
+                }
+              />
+            </div>
+          ))
+        ) : (
+          <></>
+        )}
       </div>
       <Typography variant="h3" fontface="goth" underline gutterbottom>
         You may also like{" "}
       </Typography>
       <div id="featured">
-        {[...Array(6)].map(() => (
-          <DashedCard
-            bodySize="sm"
-            imgUrl={
-              "https://images.unsplash.com/photo-1563729784474-d77dbb933a9e?q=80&w=1374&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
-            }
-            title="Raspberry Cupcakes"
-            body={`A perfectly soft, classic vanilla cake recipe made entirely from scratch. It's so simple to make and tastes much better than a box mix!`}
-          />
-        ))}
+        {data && data.recipes && data.recipes.length > 0 ? (
+          data.recipes.map((recipe) => (
+            <DashedCard
+              size="sm"
+              onClick={() => navigate(`/recipe/${recipe._id}`)}
+              bodySize="sm"
+              imgUrl={recipe.imgUrl}
+              title={recipe.title}
+              body={recipe.description}
+            />
+          ))
+        ) : (
+          <></>
+        )}
       </div>
-      {/* <Textfield
-        label={"Name"}
-        withicon
-        placeholder="Enter your name"
-        size="sm"
-      />
-      <Textfield label={"Name"} placeholder="Enter your name" size="md" />
-      <Textfield
-        label={"Name"}
-        withicon
-        placeholder="Enter your name"
-        size="lg"
-      />
-
-      <Button variant="filled" size="sm">
-        Explore More
-      </Button>
-      <Button variant="outlined" size="md">
-        Explore More
-      </Button>
-      <Button variant="outlined" size="lg">
-        Explore More
-      </Button>
-      <Typography variant="h1" fontface="goth" color="purple" underline>
-        Featured Recipes
-      </Typography>
-      <Typography fontface="cursive" variant="h2">
-        Featured Recipes
-      </Typography>
-      <Typography variant="h3" fontface="typewritter" fontweight={700}>
-        Featured Recipes
-      </Typography>
-      <Typography variant="h4">Featured Recipes</Typography>
-      <Typography variant="body">Featured Recipes</Typography>
-      <div>
-        <DashedCard
-          bodySize="lg"
-          imgUrl={
-            "https://images.unsplash.com/photo-1563729784474-d77dbb933a9e?q=80&w=1374&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
-          }
-          title="Raspberry Cupcakes"
-          body={`A perfectly soft, classic vanilla cake recipe made entirely from scratch. It's so simple to make and tastes much better than a box mix!`}
-        />
-      </div>
-      <DashedCard
-        size="sm"
-        imgUrl={
-          "https://images.unsplash.com/photo-1563729784474-d77dbb933a9e?q=80&w=1374&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
-        }
-        title="Rice"
-        body={`500+ recipes`}
-        bodySize={"lg"}
-      /> */}
     </Container>
   );
 }

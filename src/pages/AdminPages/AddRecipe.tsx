@@ -18,14 +18,18 @@ import {
   useLazyRecipeQuery,
 } from "../../services/recipesApi";
 import { useLazyCategoriesQuery } from "../../services/categoriesApi";
-import { useParams } from "react-router-dom";
-
+import { useNavigate, useParams } from "react-router-dom";
+import {
+  handleDeleteImage,
+  handleImageUpload,
+} from "../../services/cloudinaryApi";
 const Wrapper = styled.div`
   display: flex;
   flex-direction: column;
   height: 100%;
   width: 100%;
   align-items: center;
+  margin-bottom: 200px;
 
   form {
     padding: 20px;
@@ -95,11 +99,12 @@ const Wrapper = styled.div`
 
 const AddRecipe = () => {
   const { id } = useParams();
-
+  const navigate = useNavigate();
   const [fetchRecipe, response, isLoading] = useLazyRecipeQuery();
   const [selectedCategories, setSelectedCategories] = useState([]);
 
   const [fetchCategories, { data }] = useLazyCategoriesQuery();
+
   const loadCategories = async (search, prevOptions, { page = 1 }) => {
     try {
       const result = await fetchCategories({
@@ -140,10 +145,6 @@ const AddRecipe = () => {
     quantity: "",
     step: "",
   });
-
-  // useEffect(() => {
-  //   loadMoreCategories();
-  // }, []);
 
   useEffect(() => {
     if (id) fetchRecipe(id);
@@ -260,37 +261,33 @@ const AddRecipe = () => {
     quantity: "",
     unit: "",
   });
+
   const handleSubmit = async (values, { setSubmitting, resetForm }) => {
     delete values.tempDirection;
     delete values.tempIngredient;
     let imageUrl = values?.imgUrl || "";
-
+    let imgPublicId = values?.imgPublicId || "";
     // add back
     if (updateImg) {
-      const data = new FormData();
-      data.append("file", imgURL);
-      data.append("upload_preset", "test_folder");
-      data.append("cloud_name", "dcuzggcsg");
-      const res = await fetch(
-        `https://api.cloudinary.com/v1_1/dcuzggcsg/image/upload`,
-        { method: "POST", body: data }
-      );
-      if (!res.ok) {
-        throw new Error("Image upload failed");
+      // Delete the old image (if present)
+      if (id && values.imgPublicId) {
+        await handleDeleteImage(formik.values.imgPublicId);
       }
 
-      const uploadImageResponse = await res.json();
+      // Upload the new image
 
-      // Extract the image URL
-      imageUrl = uploadImageResponse.url;
+      const uploadImageResponse = await handleImageUpload(imgURL);
+      imageUrl = uploadImageResponse?.url;
+      imgPublicId = uploadImageResponse?.public_id;
     }
-    // Call createRecipe with the image URL and other form values
+
     id
       ? editRecipe({
           id,
           body: {
             ...values,
             imgUrl: imageUrl,
+            imgPublicId,
             updatedBy: user._id,
             categories: values.categories.map((c) => c.value),
           },
@@ -299,11 +296,19 @@ const AddRecipe = () => {
           ...values,
           categories: values.categories.map((c) => c.value),
           imgUrl: imageUrl,
+          imgPublicId,
           authorId: user._id,
         });
 
-    resetForm();
+    resetForm({
+      values: {
+        ...initData,
+        categories: [],
+      },
+    });
+    setSelectedCategories([]);
     setSubmitting(false);
+    navigate("/admin/manage-recipes");
   };
   const formik = useFormik({
     initialValues:
@@ -320,9 +325,14 @@ const AddRecipe = () => {
         value: category._id,
       }));
       setSelectedCategories(formatted);
+      formik.setFieldValue("categories", formatted);
     }
   }, [id, response]);
-  console.log(selectedCategories, "ress");
+  useEffect(() => {
+    if (formik.values.categories && formik.values.categories.length > 0) {
+      setSelectedCategories(formik.values.categories);
+    }
+  }, [formik.values.categories]);
 
   const ingredientCrud = (type, data) => {
     switch (type) {
@@ -447,6 +457,7 @@ const AddRecipe = () => {
       setUpdateImage(true);
     }
   };
+  console.log(formik?.values?.categories);
 
   return (
     <Wrapper>

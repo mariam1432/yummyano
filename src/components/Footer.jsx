@@ -4,17 +4,13 @@ import Textfield from "./Textfield";
 import Button from "./Button";
 import Typography from "./Typography";
 const StyledFooter = styled.footer`
-  // margin-top: 20px;
   width: 100%;
-  //   position: absolute;
-  //   bottom: 0;
-  //   left: 0;
   background-color: #daa588;
   display: grid;
   grid-template-columns: auto auto auto;
-
   justify-content: space-around;
   padding: 20px;
+  margin-top: auto; /* Pushes footer to bottom */
 
   #subscribe {
     display: flex;

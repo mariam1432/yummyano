@@ -10,6 +10,11 @@ import {
   useLazyCategoryQuery,
 } from "../../services/categoriesApi";
 import { getFromLocalStorage } from "../../commonUtils";
+import {
+  handleDeleteImage,
+  handleImageUpload,
+} from "../../services/cloudinaryApi";
+
 const Wrapper = styled.div`
   display: flex;
   flex-direction: column;
@@ -114,41 +119,42 @@ const AddCategory = () => {
   });
   const handleSubmit = async (values, { setSubmitting, resetForm }) => {
     let imageUrl = values?.imgUrl || "";
-
+    let imgPublicId = values?.imgPublicId || "";
     if (updateImg) {
-      const data = new FormData();
-      data.append("file", imgURL);
-      data.append("upload_preset", "test_folder");
-      data.append("cloud_name", "dcuzggcsg");
-      const res = await fetch(
-        `https://api.cloudinary.com/v1_1/dcuzggcsg/image/upload`,
-        { method: "POST", body: data }
-      );
-      if (!res.ok) {
-        throw new Error("Image upload failed");
+      if (id && values.imgPublicId) {
+        await handleDeleteImage(formik.values.imgPublicId);
       }
-
-      const uploadImageResponse = await res.json();
-
-      // Extract the image URL
-      imageUrl = uploadImageResponse.url;
+      const imageResponse = await handleImageUpload(imgURL);
+      imageUrl = imageResponse?.url;
+      imgPublicId = imageResponse?.public_id;
     }
-    // Call createRecipe with the image URL and other form values
     id
       ? editCategory({
           id,
-          body: { ...values, imgUrl: imageUrl, updatedBy: user._id },
+          body: {
+            ...values,
+            imgUrl: imageUrl,
+            updatedBy: user._id,
+            imgPublicId,
+          },
         })
-      : createCategory({ ...values, imgUrl: imageUrl, authorId: user._id });
+      : createCategory({
+          ...values,
+          imgUrl: imageUrl,
+          authorId: user._id,
+          imgPublicId,
+        });
 
     resetForm();
     setImagePreview(null);
     setSubmitting(false);
   };
   const formik = useFormik({
-    initialValues: initData,
+    initialValues:
+      id && response && response.currentData ? response.currentData : initData,
     validationSchema,
     onSubmit: handleSubmit,
+    enableReinitialize: true,
   });
   return (
     <Wrapper>

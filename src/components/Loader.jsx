@@ -1,21 +1,24 @@
 import React from "react";
 import styled from "styled-components";
+
 const StyledLoader = styled.div`
-  width: 100%;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
   height: 100vh;
   display: flex;
   justify-content: center;
   align-items: center;
-  position: fixed;
-  background: rgba(0, 0, 0, 0.2);
-  z-index: 1;
-  cursor: not-allowed;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 9999;
+  cursor: ${({ disabled }) => (disabled ? "not-allowed" : "wait")};
 
   .spinner {
-    width: 32px;
-    height: 32px;
+    width: ${({ size }) => size || "32px"};
+    height: ${({ size }) => size || "32px"};
     border: 4px solid;
-    border-color: #C2185B transparent #E0568F transparent;
+    border-color: #c2185b transparent #e0568f transparent;
     border-radius: 50%;
     animation: spin-anim 1.2s linear infinite;
   }
@@ -30,13 +33,9 @@ const StyledLoader = styled.div`
   }
 `;
 
-function Loader({ size, isDisabled }) {
+function Loader({ size, disabled = false }) {
   return (
-    <StyledLoader
-      className="loader-container"
-      size={size}
-      disabled={isDisabled}
-    >
+    <StyledLoader className="loader-container" size={size} disabled={disabled}>
       <div className="spinner" />
     </StyledLoader>
   );
